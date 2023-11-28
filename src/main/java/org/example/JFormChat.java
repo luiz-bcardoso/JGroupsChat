@@ -9,12 +9,11 @@ public class JFormChat {
     private JPanel panelMain;
 
     public JFormChat() {
-        dizOiButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null, "Oi!");
-            }
-        });
+        dizOiButton.addActionListener(e -> dizOi());
+    }
+
+    public void dizOi(){
+        JOptionPane.showMessageDialog(null, "Oi!");
     }
 
     public static void main(String[] args) {
