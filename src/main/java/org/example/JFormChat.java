@@ -3,10 +3,6 @@ package org.example;
 import org.jgroups.*;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -20,6 +16,7 @@ public class JFormChat{
     private JTextArea textAreaChat;
     private JTextField textFieldCoordenador;
     private JButton atualizarButton;
+    private JTextField textFieldMembros;
 
     private static JChannel channel;
     private static GroupChatExample gce;
@@ -36,10 +33,12 @@ public class JFormChat{
         // This is horrible, but it's the only one that worked for the time i had...
         textAreaChat.setText("");
         List<String> mensagens = gce.getMensagens();
+
         for(int i = 0; i < mensagens.size(); i++){
             textAreaChat.append(mensagens.get(i));
         }
         textFieldCoordenador.setText(gce.getCoordenador());
+        textFieldMembros.setText(gce.getClientes());
     }
 
     private void conectar(){
@@ -59,14 +58,12 @@ public class JFormChat{
     }
     private void desconectar(){
         int option = JOptionPane.showConfirmDialog(null, "Deseja também finalizar o cluster ao sair?");
-        if(option == 0){
-            channel.disconnect();
-            JOptionPane.showMessageDialog(null, "Cluster foi fechado com sucesso!");
-        }
         if(option == 0 || option == 1){
             System.out.println("Desconectando do chat.");
             try {
                 channel.send(new Message(null, "<< SAIU DO CHAT >>"));
+                channel.disconnect();
+                JOptionPane.showMessageDialog(null, "Desconectado do cluster.");
             } catch (Exception e) {
                 System.err.println("Erro ao enviar mensagem de saida.");
                 throw new RuntimeException(e);
@@ -77,6 +74,11 @@ public class JFormChat{
             atualizarButton.setEnabled(false);
             desconectaButton.setEnabled(false);
             enviarMensagemButton.setEnabled(false);
+        }
+
+        if(option == 0){
+            channel.close();
+            JOptionPane.showMessageDialog(null, "Cluster foi fechado com sucesso!");
         }
 
     }
