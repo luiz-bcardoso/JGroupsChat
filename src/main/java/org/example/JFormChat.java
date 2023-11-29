@@ -3,25 +3,45 @@ package org.example;
 import org.jgroups.*;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 
-public class JFormChat implements Receiver{
+public class JFormChat{
+
     private JPanel panelMain;
     private JButton conectaButton;
     private JButton desconectaButton;
-    public JTextArea textAreaChat;
-    private JTextField MensagemtextField;
     private JButton enviarMensagemButton;
-    public JTextField textFieldCoordenador;
+    private JTextField MensagemtextField;
+    private JTextArea textAreaChat;
+    private JTextField textFieldCoordenador;
+    private JButton atualizarButton;
 
-    public static JChannel channel;
+    private static JChannel channel;
+    private static GroupChatExample gce;
 
     public JFormChat(){
         conectaButton.addActionListener(e -> conectar());
         desconectaButton.addActionListener(e -> desconectar());
         enviarMensagemButton.addActionListener(e -> enviarMensagem());
+        atualizarButton.addActionListener(e -> atualizaChat());
     }
+
+
+    private void atualizaChat() {
+        // This is horrible, but it's the only one that worked for the time i had...
+        textAreaChat.setText("");
+        List<String> mensagens = gce.getMensagens();
+        for(int i = 0; i < mensagens.size(); i++){
+            textAreaChat.append(mensagens.get(i));
+        }
+        textFieldCoordenador.setText(gce.getCoordenador());
+    }
+
     private void conectar(){
 
         try {
@@ -29,21 +49,36 @@ public class JFormChat implements Receiver{
             JOptionPane.showMessageDialog(null, "Conectado ao cluster!");
 
             // Altera estado dos botoes
-            desconectaButton.setEnabled(true);
             conectaButton.setEnabled(false);
+            desconectaButton.setEnabled(true);
+            atualizarButton.setEnabled(true);
             enviarMensagemButton.setEnabled(true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
     private void desconectar(){
-        channel.disconnect();
-        JOptionPane.showMessageDialog(null, "Desconectado do cluster!");
+        int option = JOptionPane.showConfirmDialog(null, "Deseja também finalizar o cluster ao sair?");
+        if(option == 0){
+            channel.disconnect();
+            JOptionPane.showMessageDialog(null, "Cluster foi fechado com sucesso!");
+        }
+        if(option == 0 || option == 1){
+            System.out.println("Desconectando do chat.");
+            try {
+                channel.send(new Message(null, "<< SAIU DO CHAT >>"));
+            } catch (Exception e) {
+                System.err.println("Erro ao enviar mensagem de saida.");
+                throw new RuntimeException(e);
+            }
 
-        // Altera estado dos botoes
-        conectaButton.setEnabled(true);
-        desconectaButton.setEnabled(false);
-        enviarMensagemButton.setEnabled(false);
+            // Altera estado dos botoes
+            conectaButton.setEnabled(true);
+            atualizarButton.setEnabled(false);
+            desconectaButton.setEnabled(false);
+            enviarMensagemButton.setEnabled(false);
+        }
+
     }
     private void enviarMensagem(){
         String line = MensagemtextField.getText();
@@ -51,22 +86,13 @@ public class JFormChat implements Receiver{
             Message message = new Message(null, line);
             try {
                 channel.send(message);
+                atualizaChat();
             } catch (Exception e) {
                 System.err.println("Erro ao enviar mensagem, talvez não esteja conectado?");
                 JOptionPane.showMessageDialog(null, "Erro ao enviar mensagem, talvez não esteja conectado?");
                 throw new RuntimeException(e);
             }
             MensagemtextField.setText("");
-        }
-    }
-
-    public void iniciarCluster(){
-        try {
-            System.setProperty("java.net.preferIPv4Stack", "true");
-            channel = new JChannel("src/main/resources/udp.xml");
-            channel.setReceiver(this);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -80,34 +106,13 @@ public class JFormChat implements Receiver{
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        // Inicializa a classe e implementa cluster
-        JFormChat chat = new JFormChat();
-        chat.iniciarCluster();
-    }
-
-    @Override
-    public void receive(Message message) {
-        String line = message.getSrc()+" disse: "+message.getObject()+"\n";
-        System.out.println(line);
-        textAreaChat.append(line);
-    }
-
-    @Override
-    public void viewAccepted(View view_atual) {
-        System.out.println("---VISÃO DO GRUPO ATUALIZADA---");
-        System.out.println("ID da view: "+view_atual.getViewId().getId());
-        System.out.println("Coordenador: "+view_atual.getCreator());
-        textFieldCoordenador.setText(view_atual.getCreator().toString());
-        System.out.print("Membros: ");
-        List<Address> processos = view_atual.getMembers();
-        for(Address proc: processos){
-            System.out.print(proc+", ");
+        // Instancia a classe GCE que tem o listner implementado para mensagens
+        try {
+            channel = new JChannel("src/main/resources/udp.xml");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        System.out.println();
-    }
-
-    @Override
-    public void suspect(Address suspected_mbr) {
-        System.out.println("PROCESSO SUSPEITO DE FALHA: " + suspected_mbr);
+        gce = new GroupChatExample(channel);
+        gce.iniciaChat();
     }
 }

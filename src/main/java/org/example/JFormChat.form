@@ -41,17 +41,7 @@
         </constraints>
         <properties>
           <enabled value="false"/>
-          <text value="Desconectar Cluster"/>
-        </properties>
-      </component>
-      <component id="379ad" class="javax.swing.JTextArea" binding="textAreaChat">
-        <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="50"/>
-          </grid>
-        </constraints>
-        <properties>
-          <editable value="false"/>
+          <text value="Desconectar Chat"/>
         </properties>
       </component>
       <component id="61767" class="javax.swing.JLabel">
@@ -97,6 +87,28 @@
         </constraints>
         <properties>
           <text value="Coordenador"/>
+        </properties>
+      </component>
+      <component id="379ad" class="javax.swing.JTextArea" binding="textAreaChat">
+        <constraints>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="50"/>
+          </grid>
+        </constraints>
+        <properties>
+          <editable value="false"/>
+        </properties>
+      </component>
+      <component id="5ae64" class="javax.swing.JButton" binding="atualizarButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <enabled value="false"/>
+          <horizontalTextPosition value="0"/>
+          <text value="Atualizar"/>
+          <verticalAlignment value="0"/>
+          <verticalTextPosition value="0"/>
         </properties>
       </component>
     </children>
